@@ -12,7 +12,5 @@ module.exports = defineConfig({
   defaultCommandTimeout: 60000,
   execTimeout: 60000,
   watchForFilesChanges: false,
-  failOnStatusCode: false,
-  baseUrl: 'https://main.core.us.dev.amdocsplatformx.com/'
-  }
-});
+  failOnStatusCode: false
+  })
