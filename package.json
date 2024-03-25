@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "test-e2e": "DEBUG=cypress:* cypress run --spec cypress/e2e/ --config-file cypress.config.js",
+        "test-e2e": "DEBUG=cypress:* cypress run --spec cypress/e2e/test.cy.js --config-file cypress.config.js",
         "test-e2e-local": "export CYPRESS_LOCAL=true && cypress run --config-file cypress.config.js"
     },
     "author": "Shubham Shivhare",
