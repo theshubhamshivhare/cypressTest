@@ -13,12 +13,6 @@ module.exports = defineConfig({
   execTimeout: 60000,
   watchForFilesChanges: false,
   failOnStatusCode: false,
-  e2e: {
-    setupNodeEvents(on, config) {
-      // implement node event listeners here
-      require('cypress-mochawesome-reporter/plugin')(on);
-      return require('./cypress/plugins/index.js')(on, config)
-    },
-    baseUrl: 'https://main.core.us.dev.amdocsplatformx.com/'
+  baseUrl: 'https://main.core.us.dev.amdocsplatformx.com/'
   }
 });
