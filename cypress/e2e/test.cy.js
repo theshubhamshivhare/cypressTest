@@ -4,3 +4,4 @@ describe("User Invite Journey", () => {
     cy.contains('Login').click({ force: true })
   })
   })
+  })
