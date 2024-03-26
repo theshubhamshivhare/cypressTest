@@ -18,9 +18,9 @@ jobs:
           npm install
       - name: Set Proxies
         run: |
-          export HTTP_PROXY="http://genproxy.amdocs.com:8080"
+          export HTTP_PROXY="http://genproxy:8080"
           echo "HTTP_PROXY=$HTTP_PROXY" >> $GITHUB_ENV
-          export HTTPS_PROXY="http://genproxy.amdocs.com:8080"
+          export HTTPS_PROXY="http://genproxy:8080"
           echo "HTTPS_PROXY=$HTTPS_PROXY" >> $GITHUB_ENV
           export no_proxy="fs.amdocs.com"
           echo "no_proxy=$no_proxy" >> $GITHUB_ENV
