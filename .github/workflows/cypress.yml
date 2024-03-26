@@ -3,9 +3,6 @@ on: [push]
 jobs:
   cypress-run:
     runs-on: ubuntu-latest
-    env:
-     https_proxy: http://genproxy.amdocs.com:8080
-     no_proxy: api.github.com,github.com,nodejs.org,registry.npmjs.org,*.s3.amazonaws.com,s3.amazonaws.com
     # Runs tests in parallel with matrix strategy https://docs.cypress.io/guides/guides/parallelization
     # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
     # Also see warning here https://github.com/cypress-io/github-action#parallel
@@ -35,8 +32,7 @@ jobs:
           record: true
           parallel: true # Runs test in parallel using settings above
         env:
-          # For recording and parallelization to work you must set your CYPRESS_RECORD_KEY
-          # in GitHub repo → Settings → Secrets → Actions
+          https_proxy: http://genproxy.amdocs.com:8080
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           # Creating a token https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
