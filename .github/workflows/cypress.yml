@@ -18,6 +18,7 @@ jobs:
           npm install
       - name: Chrome Install
         run: |
+          wget --quiet http://mirror.centos.org/centos/7/os/x86_64/Packages/yum-3.4.3-168.el7.centos.noarch.rpm
           chrome_url=https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-123.0.6312.59-1.x86_64.rpm
           echo "DOWNLOAD CHROME URL: $chrome_url"
           requested_version="Google Chrome 123.0.6312.59-1"
