@@ -1,6 +1,7 @@
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
+  projectId: "bvnico",
   reporter: 'cypress-mochawesome-reporter',
   chromeWebSecurity: false,
   video: true,
