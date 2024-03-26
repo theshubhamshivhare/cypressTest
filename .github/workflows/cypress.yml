@@ -4,7 +4,7 @@ jobs:
   cypress-run:
     runs-on: ubuntu-latest
     env:
-     https_proxy: http://no-such-proxy:3128
+     https_proxy: http://genproxy:8080
      no_proxy: api.github.com,github.com,nodejs.org,registry.npmjs.org,*.s3.amazonaws.com,s3.amazonaws.com
     # Runs tests in parallel with matrix strategy https://docs.cypress.io/guides/guides/parallelization
     # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
