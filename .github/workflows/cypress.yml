@@ -18,12 +18,7 @@ jobs:
           npm install
       - name: Set Proxies
         run: |
-          export HTTP_PROXY="http://genproxy:8080"
-          echo "HTTP_PROXY=$HTTP_PROXY" >> $GITHUB_ENV
-          export HTTPS_PROXY="http://genproxy:8080"
-          echo "HTTPS_PROXY=$HTTPS_PROXY" >> $GITHUB_ENV
-          export no_proxy="fs.amdocs.com"
-          echo "no_proxy=$no_proxy" >> $GITHUB_ENV
+          export |grep http
       - name: Cypress run
         # Uses the official Cypress GitHub action https://github.com/cypress-io/github-action
         uses: cypress-io/github-action@v6
