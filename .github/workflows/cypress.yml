@@ -27,7 +27,8 @@ jobs:
 
       - name: Sync source to target repository
         run: |
-          rsync -av --progress ./cypress/ asmp-documentation/ --exclude .git --exclude .github
+          cd asmp-documentation
+          rsync -av --progress cypress/ asmp-documentation/ --exclude .git --exclude .github
 
       - name: Commit changes and Push
         run: |
