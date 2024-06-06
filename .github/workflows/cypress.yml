@@ -11,6 +11,11 @@ jobs:
       matrix:
         containers: [1, 2] # Uses 2 parallel instances
     steps:
+      - name: Checkout Service Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CROSSREPOACCESSTOKEN }}
       - name: Checkout
         uses: actions/checkout@v4
         with:
