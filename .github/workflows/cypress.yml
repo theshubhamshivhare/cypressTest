@@ -32,6 +32,8 @@ jobs:
       - name: Commit changes and Push
         run: |
           cd asmp-documentation
+          git config --global user.email "action@github.com"
+          git config --global user.name "Github Actions"
           git status
           git add .
           git commit -m "Sync from user-management repository"
