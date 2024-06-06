@@ -15,6 +15,32 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: theshubhamshivhare/Express-Boilerplate
+          path: asmp-documentation
+      
+      - name: Create a new branch in Zoomin Repository
+        id: create_branch
+        run: |
+          cd asmp-documentation
+          BRANCH_NAME="feature-${{ github.ref_name }}"  # Create a branch name using the name of the feature branch
+          git checkout -b $BRANCH_NAME
+          echo "::set-output name=branch::$BRANCH_NAME"
+
+      - name: Sync source to target repository
+        run: |
+          rsync -av --progress ./ asmp-documentation/ --exclude .git --exclude .github
+
+      - name: Commit changes and Push
+        run: |
+          cd asmp-documentation
+          git status
+          git add .
+          git commit -m "Sync from user-management repository"
+
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)  # Get the current branch name
+          echo "Pushing changes to branch $BRANCH_NAME"
+          git status
+          git push origin HEAD  # Push changes to the newly created current branch
+          
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
