@@ -32,7 +32,7 @@ jobs:
             pip3 install mkdocs-material==9.5.18
           fi
           if pip3 show mike > /dev/null; then
-           echo "Mike is already installed.
+           echo "Mike is already installed."
           else
             pip3 install mike==2.1.1
           fi
