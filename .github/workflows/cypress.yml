@@ -54,7 +54,7 @@ jobs:
           if mike list | grep -q "latest"; then
             mike delete --push --branch gh-pages latest
           fi
-          mike deploy --push --branch gh-pages $VERSION ./site/api-docs
+          mike deploy --push --branch gh-pages $VERSION
           mike alias --push --branch gh-pages $VERSION latest
 
      
