@@ -52,7 +52,7 @@ jobs:
           VERSION: ${{env.version}}
         run: |
           mkdir -p site
-          cp -r api-docs/* /site
+          cp -r /* /site
           if mike list | grep -q "latest"; then
             mike delete --push --branch gh-pages latest
           fi
