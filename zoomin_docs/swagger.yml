@@ -1,0 +1,2097 @@
+openapi: "3.0.1"
+info:
+  title: "user-mng-srv-templ"
+  description: |
+    This API manages human users and users's invitations
+  version: ${version}
+servers:
+  - url: ${url}
+tags:
+  - name: private
+    description: Operations available to authenticated users
+x-amazon-apigateway-request-validators:
+  all:
+    validateRequestBody: true
+    validateRequestParameters: true
+  params-only:
+    validateRequestBody: false
+    validateRequestParameters: true
+  body-only:
+    validateRequestBody: true
+    validateRequestParameters: false
+x-amazon-apigateway-request-validator: all
+paths:
+  /health:
+    get:
+      description: |
+        This operation provides a health status for the service.
+      operationId: getHealth
+      parameters:
+        - name: "dep"
+          in: "query"
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Health status of the service is OK."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        type: "mock"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        passthroughBehavior: "when_no_match"
+  /status:
+    get:
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        type: "mock"
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        passthroughBehavior: "when_no_match"
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        type: "mock"
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        passthroughBehavior: "when_no_match"
+  /invitation:
+    post:
+      operationId: "inviteUsers"
+      description: |
+        This operation creates an invitation for a user to an organization  according to provided paraeters.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteUser"
+        required: true
+      responses:
+        "201":
+          description: "Invitation created successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InviteResponse"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-invite-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /users:
+    get:
+      description: |
+        List of users depending on organization.
+        The organization id taken&#58;
+        - From request parameter if provided.
+        - Otherwise, from requester access token.
+      operationId: "readUsers"
+      security:
+        - PlatformXAuthorizer: []
+      parameters:
+        - in: query
+          name: organization_id
+          schema:
+            type: string
+          required: false
+          description: Paging number
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Paging number
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+          required: false
+          description: Page size
+      responses:
+        "200":
+          description: "Retrieved users successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsersList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /users/{user_id}/mfa:
+    get:
+      description: "Retrieve all MFA devices per user"
+      operationId: "readUserMfa"
+      security:
+        - PlatformXAuthorizer: []
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: string
+          required: true
+          description: The user id we need to retrieve its tokens
+      responses:
+        "200":
+          description: "Retrieved MFA devices successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MFAList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/userNotFound"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /users/{user_id}/mfa/{mfaId}:
+    delete:
+      description: "This API will enable to delete a specific MFA device"
+      operationId: "deleteUserMfa"
+      security:
+        - PlatformXAuthorizer: []
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: string
+          required: true
+          description: The user id we need to retrieve its tokens
+        - in: path
+          name: mfaId
+          schema:
+            type: string
+          required: true
+          description: the id of the MFA
+      responses:
+        "204":
+          description: "MFA device deleted successfully"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/userNotFound"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-${stage}/invocations"
+        responses:
+        default:
+          statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /users/{user_id}:
+    get:
+      description: "This API will be retrieve details of a specific user"
+      operationId: "readUser"
+      security:
+        - PlatformXAuthorizer: []
+      parameters:
+        - name: "user_id"
+          in: "path"
+          schema:
+            type: "string"
+          required: true
+          description: "The user id we need to retrieve its tokens"
+      responses:
+        "200":
+          description: "Retrieved user details successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/userNotFound"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    delete:
+      description: "This API for deletion of a specific user"
+      operationId: "deleteUser"
+      security:
+        - PlatformXAuthorizer: []
+      parameters:
+        - name: "user_id"
+          in: "path"
+          schema:
+            type: "string"
+          required: true
+          description: "The user id we need to delete"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-${stage}/invocations"
+        passthroughBehavior: "when_no_match"
+      responses:
+        "204":
+          description: "User deleted successfully"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/userNotFound"
+  /users/{user_id}/roles/assign:
+    post:
+      operationId: "createUserRoles"
+      summary: "Assign Roles to a User"
+      description: "This endpoint allows for the assignment of specified roles to a user within the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      parameters:
+        - name: "user_id"
+          in: "path"
+          description: "The unique identifier of the user."
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRolesRequest"
+        required: true
+      responses:
+        "204":
+          description: "The role has been assigned to the user successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          description: "User not found or Role not found."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/responses/userNotFound"
+                  - $ref: "#/components/responses/roleNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /users/{user_id}/roles/remove:
+    post:
+      operationId: "deleteUserRoles"
+      summary: "Remove Roles from a User"
+      description: "This endpoint removes specified roles from a user in the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      parameters:
+        - name: "user_id"
+          in: "path"
+          description: "The unique identifier of the user."
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRolesRequest"
+        required: true
+      responses:
+        "204":
+          description: "The role has been removed from the user successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          description: "User not found or Role not found."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/responses/userNotFound"
+                  - $ref: "#/components/responses/roleNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /users/{user_id}/roles:
+    get:
+      operationId: "readUserRoles"
+      summary: "Retrieve User Roles"
+      description: "This endpoint retrieves all roles associated with a user in the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      parameters:
+        - name: "user_id"
+          in: "path"
+          description: "The unique identifier of the user."
+          required: true
+          schema:
+            type: "string"
+        - name: "organization_id"
+          in: "query"
+          description: "The unique identifier of the organization - if not provided, will be taken from JWT token."
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Retrieved user roles successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolesList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/userNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /roles:
+    get:
+      summary: Amdocs SaaS Management Platform Read Roles
+      description: Get list of roles
+      operationId: "readRoles"
+      tags:
+        - private
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Paging number
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+          required: false
+          description: Page size
+      responses:
+        "200":
+          description: "Retrieved list of roles successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolesList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    post:
+      operationId: "createRoles"
+      summary: Amdocs SaaS Management Platform Roles Creation
+      description: Create a custom role
+      tags:
+        - private
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewRole"
+        required: true
+      responses:
+        "201":
+          description: "Role created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "409":
+          $ref: "#/components/responses/conflict"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /roles/{id}:
+    get:
+      operationId: "readRole"
+      summary: Amdocs SaaS Management Platform Read Role
+      description: Get a role by Auth0 Role ID
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Role retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/roleNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    delete:
+      operationId: "deleteRole"
+      summary: Amdocs SaaS Management Platform Delete Role
+      description: Delete a role by Auth0 Role ID
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "204":
+          description: "Role deleted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/roleNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    patch:
+      summary: Amdocs SaaS Management Platform Update Role
+      description: Update a role by Auth0 Role ID
+      operationId: "updateRole"
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchRole"
+        required: true
+      responses:
+        "200":
+          description: "Role updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/roleNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /roles/{id}/permissions:
+    post:
+      operationId: "createRolePermissions"
+      summary: Amdocs SaaS Management Platform Permissions assignment to a role
+      description: Create role permissions at user management for Auth0 management API
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: string
+      tags:
+        - private
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionsList"
+        required: true
+      responses:
+        "201":
+          description: "Role permissions created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionsList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/roleNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /resource_servers:
+    get:
+      operationId: "readResourceServers"
+      summary: Amdocs SaaS Management Platform Read Resource Server (Auth0 API)
+      description: Get a list of Resource Servers (Auth0 API)
+      tags:
+        - private
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Paging number
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+          required: false
+          description: Page size
+      responses:
+        "200":
+          description: "List of resources servers retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceServersList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-resourceServer-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    post:
+      operationId: "createResourceServers"
+      summary: Amdocs SaaS Management Platform Create Resource Server (Auth0 API)
+      description: Create a custom Resource Server (Auth0 API)
+      tags:
+        - private
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewResourceServer"
+        required: true
+      responses:
+        "201":
+          description: "Resource server created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceServer"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "409":
+          $ref: "#/components/responses/conflict"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-resourceServer-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /resource_servers/{id}:
+    get:
+      operationId: "readResourceServer"
+      summary: Amdocs SaaS Management Platform Read Resource Server (Auth0 API)
+      description: Get custom Resource Server (Auth0 API) by ID (Auth0 API ID)
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Resource server retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceServer"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/resourceServerNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-resourceServer-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    delete:
+      operationId: "deleteResourceServer"
+      summary: Amdocs SaaS Management Platform Delete Resource Server (Auth0 API)
+      description: Delete a custom Resource Server (Auth0 API) by ID (Auth0 API ID)
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "204":
+          description: "Resource server deleted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/resourceServerNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-resourceServer-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    patch:
+      operationId: "updateResourceServer"
+      summary: Amdocs SaaS Management Platform Update Resource Server (Auth0 API)
+      description: Update a custom Resource Server (Auth0 API) by ID (Auth0 API ID)
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchResourceServer"
+        required: true
+      responses:
+        "200":
+          description: "Resource server updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceServer"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/resourceServerNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-resourceServer-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /resource_servers/{id}/permissions:
+    get:
+      operationId: "readResourceServerPermissions"
+      summary: Amdocs SaaS Management Platform Read Permissions
+      description: Gets a list of permissions of a resource server
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          description: "Resource server id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Paging number
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+          required: false
+          description: Page size
+      responses:
+        "200":
+          description: "Permissions retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionsList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/resourceServerNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-permission-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /resource_servers/{id}/permissions/add:
+    post:
+      operationId: "createResourceServerPermissions"
+      summary: Amdocs SaaS Management Platform Add Permissions
+      description: Adds new permissions to a resource server
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          description: "Resource server id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                permissions:
+                  type: "array"
+                  description: "List of permissions to add to a resource server."
+                  minItems: 1
+                  items:
+                    $ref: "#/components/schemas/CreatePermissionRequest"
+              required:
+                - "permissions"
+              additionalProperties: false
+
+        required: true
+      responses:
+        "201":
+          description: "Permission added successfully"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Permission"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/resourceServerNotFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-permission-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /resource_servers/{id}/permissions/remove:
+    post:
+      operationId: "deleteResourceServerPermissions"
+      summary: Amdocs SaaS Management Platform Remove Permissions
+      description: Removes a list of permissions from a resource server
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          description: "Resource server id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              required:
+                - "permissions"
+              properties:
+                permissions:
+                  type: "array"
+                  description: "List of permissions to remove from a resource server."
+                  minItems: 1
+                  items:
+                    type: "string"
+                    example: "create:customers"
+              additionalProperties: false
+        required: true
+
+      responses:
+        "204":
+          description: "Permissions removed from resource server successfully"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          description: "Resource server not found or one of the permissions not found."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/responses/resourceServerNotFound"
+                  - $ref: "#/components/responses/permissionNotFound"
+              example:
+                message: "Requested resource server not found."
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-permission-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /resource_servers/{id}/permissions/{name}:
+    get:
+      operationId: "readResourceServerPermission"
+      summary: Amdocs SaaS Management Platform Read Permission
+      description: Gets a specific permission from a resource server
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          description: "Resource server id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "name"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Permission retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          description: "Resource server not found or Permission not found."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/responses/resourceServerNotFound"
+                  - $ref: "#/components/responses/permissionNotFound"
+              example:
+                message: "Requested resource server not found."
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-permission-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    patch:
+      summary: Amdocs SaaS Management Platform Update Permission
+      operationId: "updateResourceServerPermissions"
+      description: Updates a permission in a resource server
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          description: "Resource server id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "name"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPermission"
+      responses:
+        "200":
+          description: "Permission updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          description: "Resource server not found or Permission not found."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/responses/resourceServerNotFound"
+                  - $ref: "#/components/responses/permissionNotFound"
+              example:
+                message: "Requested resource server not found."
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-permission-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /machine/{id}/roles/assign:
+    post:
+      operationId: "createMachineUserRoles"
+      summary: "Assign Roles to a Machine User"
+      description: "This endpoint allows for the assignment of specified roles to a machine user within the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "The unique identifier of the machine."
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignMachineUserRolesRequest"
+        required: true
+      responses:
+        "204":
+          description: "The role has been assigned to the machine user successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          description: "Machine User not found or Role not found."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/responses/machineUserNotFound"
+                  - $ref: "#/components/responses/roleNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-machine-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "204"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /machine/{id}/roles:
+    get:
+      operationId: "readMachineUserRoles"
+      summary: "Retrieve Machine User Roles"
+      description: "This endpoint retrieves all roles associated with a machine user in the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "The unique identifier of the machine user."
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Retrieved machine user roles successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolesList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/machineUserNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-machine-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /machine/{id}/roles/remove:
+    post:
+      operationId: "deleteMachineUserRoles"
+      summary: "Remove Roles from a Machine User"
+      description: "This endpoint removes specified roles from a machine user in the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "The unique identifier of the machine user."
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoveMachineUserRolesRequest"
+        required: true
+      responses:
+        "204":
+          description: "The role has been removed from the machine user successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          description: "Machine User not found or Role not found."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/responses/machineUserNotFound"
+                  - $ref: "#/components/responses/roleNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-machine-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /machine:
+    post:
+      operationId: "createMachineUser"
+      summary: "Create Machine User"
+      description: "This endpoint creates a machine user in the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MachineUserRequest"
+        required: true
+      responses:
+        "201":
+          description: "Machine user created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "409":
+          $ref: "#/components/responses/conflict"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-machine-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "201"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    get:
+      description: "This endpoint retrieves all machine users in the Amdocs SaaS Management Platform."
+      operationId: "readMachineUsers"
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: Paging number
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+          required: false
+          description: Page size
+      responses:
+        "200":
+          description: "Machine users retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MachineList"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-machine-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "201"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /machine/{id}:
+    get:
+      operationId: "readMachineUser"
+      summary: "Retrieve Machine User"
+      description: "This endpoint retrieves a machine user in the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "The unique identifier of the machine user."
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "Machine user retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/machineUserNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-machine-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "204"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+    delete:
+      operationId: "deleteMachineUser"
+      summary: "Delete Machine User"
+      description: "This endpoint deletes a machine user in the Amdocs SaaS Management Platform."
+      tags:
+        - private
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The unique identifier of the machine user.
+      responses:
+        "204":
+          description: "Machine user deleted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/machineUserNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-machine-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "204"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+  /machine/{id}/rotate:
+    post:
+      operationId: "rotateMachineUser"
+      summary: "Rotate Machine User Secret"
+      description: |
+        This operation rotates the client secret by the Auth0 client application (token) ID.
+        - If the secret is provided in the request body, it replaces the existing client secret.
+        - If the secret is not provided, a new secret is generated and it replaces the existing client secret.
+      tags:
+        - private
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The unique identifier of the machine user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: "(Optional) A request body with the client secret."
+              $ref: "#/components/schemas/Rotate"
+        required: false
+      responses:
+        "200":
+          description: "Machine user secret rotated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rotate"
+        "400":
+          $ref: "#/components/responses/badInput"
+        "401":
+          $ref: "#/components/responses/notAuthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/machineUserNotFound"
+      security:
+        - PlatformXAuthorizer: []
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${service_name}-machine-user-roles-${stage}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+
+components:
+  schemas:
+    RolesList:
+      title: "List Of Roles"
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Role"
+    Empty:
+      title: "Empty Schema"
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          default: ""
+        clientId:
+          type: "string"
+          default: ""
+        clientSecret:
+          type: "string"
+          default: ""
+    MFAList:
+      type: array
+      items:
+        $ref: "#/components/schemas/MFA"
+    MFA:
+      type: "object"
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        confirmed:
+          type: boolean
+        created_at:
+          type: string
+        "last_auth_at":
+          type: string
+    UsersList:
+      type: "object"
+      properties:
+        start:
+          type: integer
+        limit:
+          type: integer
+        length:
+          type: integer
+        total:
+          type: integer
+        UserList:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+      additionalProperties: false
+    Permission:
+      type: "object"
+      required:
+        - "permission"
+        - "resource_server_id"
+        - "description"
+      properties:
+        permission:
+          type: "string"
+          description: action:resource
+          example: "create:customers"
+        resource_server_id:
+          type: "string"
+          description: Auth0 Server ID
+          example: "6368ec74af2280bfaf69a41c"
+        description:
+          type: "string"
+          example: Customers management create permission
+      additionalProperties: false
+    PermissionsList:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Permission"
+    CreatePermissionRequest:
+      type: "object"
+      required:
+        - "permission"
+        - "description"
+      properties:
+        permission:
+          type: "string"
+          description: action:resource
+          example: "create:customers"
+        description:
+          type: "string"
+          example: Customers management create permission
+      additionalProperties: false
+    PatchPermission:
+      type: "object"
+      required:
+        - "description"
+      properties:
+        description:
+          type: "string"
+          example: Customers management create permission
+      additionalProperties: false
+    User:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+        blocked:
+          type: "boolean"
+        name:
+          type: "string"
+        user_id:
+          type: "string"
+      additionalProperties: false
+    InviteUser:
+      type: "object"
+      description: Invitation parameters
+      required:
+        - "organization_id"
+        - "roles"
+        - "email"
+      properties:
+        organization_id:
+          type: "string"
+          example: "org_WJ9ZoXSPjMcMVsFY"
+          description: "Unique Identifier of the organization"
+        roles:
+          type: "array"
+          minItems: 1
+          items:
+            type: string
+          description: "List of roles to be assigned to the user"
+        email:
+          type: "string"
+          example: "donotreply@amdocs.com"
+          description: "User Email"
+      additionalProperties: false
+    InviteResponse:
+      type: "object"
+      description: "Response return after successful invitation request"
+      properties:
+        invitation_url:
+          type: "string"
+          description: "The invitation url to be send to the invitee."
+        created_at:
+          type: "string"
+          example: "2023-10-08T13:36:30.661Z"
+          description: "The ISO 8601 formatted timestamp representing the creation time of the invitation."
+        expires_at:
+          type: "string"
+          example: "2023-10-15T13:36:30.661Z"
+          description: "The ISO 8601 formatted timestamp representing the expiration time of the invitation."
+        organization_id:
+          type: "string"
+          example: "org_WJ9ZoXSPjMcMVsFY"
+          description: "Unique Identifier of the organization"
+        roles:
+          type: "array"
+          items:
+            type: string
+          description: "List of roles to be assigned to the user"
+        email:
+          type: "string"
+          example: "donotreply@amdocs.com"
+          description: "Email"
+        ticket_id:
+          type: "string"
+          example: "d5bW5DgVk3WxKO4ZsXKh8LnFUe1l923H"
+          description: "Unique Identifier of the invitation ticket"
+      additionalProperties: false
+    ResourceServersList:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/ResourceServer"
+    ResourceServer:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          example: "ASMP Platform API"
+        id:
+          type: "string"
+          example: "6368ec74af2280bfaf69a41c"
+        description:
+          type: "string"
+          example: "ASMP Platform API resource server"
+        organization_id:
+          type: "string"
+          example: "org_tc3DlnKBHYRlW9VB"
+        identifier:
+          type: "string"
+          example: "https://uri.com"
+    NewResourceServer:
+      type: "object"
+      required:
+        - name
+        - description
+        - identifier
+      properties:
+        name:
+          type: "string"
+          example: "ASMP Platform API"
+        description:
+          type: "string"
+          example: "ASMP Platform API resource server"
+        identifier:
+          type: "string"
+          example: "https://some.kind.of.uri.com"
+        organization_id:
+          type: "string"
+          example: "org_tc3DlnKBHYRlW9VB"
+      additionalProperties: false
+    PatchResourceServer:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          example: "ASMP Platform API"
+          description: "Optional attribute to update"
+        description:
+          type: "string"
+          example: "ASMP Platform API resource server"
+          description: "Optional attribute to update"
+        organization_id:
+          type: "string"
+          example: "org_tc3DlnKBHYRlW9VB"
+          description: "Optional attribute to update"
+      additionalProperties: false
+    Role:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          example: "platform_admin"
+        id:
+          $ref: "#/components/schemas/RoleId"
+        description:
+          type: "string"
+          example: "Platform Admin Role"
+        organization_id:
+          description: "Auth0 Organization Identifier"
+          type: "string"
+          example: "org_tc3DlnKBHYRlW9VB"
+        type:
+          type: "string"
+          example: Platform
+        resource_server_id:
+          type: "string"
+          description: "Returned only for roles of type product"
+          example: "6368ec74af2280bfaf69a41c"
+      additionalProperties: false
+    RoleId:
+      type: "string"
+      example: "rol_v76dzW7yNvDaMOnT"
+      pattern: "^rol_[a-zA-Z0-9]+$"
+      description: "Auth0 Role Identifier"
+    NewRole:
+      type: "object"
+      required:
+        - name
+        - description
+        - type
+      properties:
+        name:
+          type: "string"
+          example: "platform_admin"
+        description:
+          type: "string"
+          example: "rol_v76dzW7yNvDaMOnT"
+        organization_id:
+          type: "string"
+          example: "org_tc3DlnKBHYRlW9VB"
+        type:
+          type: "string"
+          example: Platform
+        resource_server_id:
+          type: "string"
+          description: "Required only for roles of type product"
+          example: "6368ec74af2280bfaf69a41c"
+      additionalProperties: false
+    PatchRole:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          example: "platform_admin"
+          description: "Optional attribute to update"
+        description:
+          type: "string"
+          example: "Platform admin role"
+          description: "Optional attribute to update"
+        organization_id:
+          type: "string"
+          example: "org_tc3DlnKBHYRlW9VB"
+          description: "Optional attribute to update"
+      additionalProperties: false
+    UpdateUserRolesRequest:
+      type: "object"
+      properties:
+        roles:
+          type: "array"
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RoleId"
+          description: "An array of roles to be assigned to the user. Each role is represented by a string."
+          example: ["rol_v76dzW7yNvDaMOnT"]
+        organization_id:
+          type: "string"
+          description: "The unique identifier of the organization. If not provided, the organization identifier of the requester will be used."
+          example: "org_tc3DlnKBHYRlW9VB"
+    AssignMachineUserRolesRequest:
+      type: "object"
+      properties:
+        roles:
+          type: "array"
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RoleId"
+          description: "An array of roles to be assigned to the machine user. Each role is represented by a string."
+          example: ["rol_v76dzW7yNvDaMOnT"]
+        organization_id:
+          type: "string"
+          description: "The unique identifier of the organization. If not provided, the organization identifier of the requester will be used."
+          example: "org_tc3DlnKBHYRlW9VB"
+    RemoveMachineUserRolesRequest:
+      type: "object"
+      properties:
+        roles:
+          type: "array"
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RoleId"
+          description: "An array of roles to be removed to the machine user. Each role is represented by a string."
+          example: ["rol_v76dzW7yNvDaMOnT"]
+    MachineUserRequest:
+      type: "object"
+      required:
+        - name
+        - tenant_org_id
+      properties:
+        name:
+          type: "string"
+          default: ""
+          description: "The name of the machine (client). The minimum length is 1 character. Angle brackets ('<' or '>') cannot be used."
+          example: "User Service"
+        tenant_org_id:
+          type: "string"
+          default: ""
+          description: "The tenant ID"
+          example: "ttTBzRn1jIxbgAoT7poR4z2W4gWhEqNX"
+      additionalProperties: false
+    Rotate:
+      type: "object"
+      properties:
+        clientSecret:
+          type: "string"
+          default: ""
+          description: "The Auth0 client secret.The secret must not be public."
+          example: "YSAk086B326FUJHqmRYjnipD9eirMrZ8mWdb6LT4V20CGBX744GcVbYY3PqHhQC_"
+    MachineList:
+      type: "object"
+      properties:
+        start:
+          type: integer
+        limit:
+          type: integer
+        length:
+          type: integer
+        total:
+          type: integer
+        MachineList:
+          type: array
+          items:
+            $ref: "#/components/schemas/Machine"
+      additionalProperties: false
+    Machine:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          default: ""
+          description: "The name of the machine (client). The minimum length is 1 character. Angle brackets ('<' or '>') cannot be used."
+          example: "User Service"
+        clientId:
+          type: "string"
+          default: ""
+          description: "The Auth0 client application ID"
+          example: "ttTBzRn1jIxbgAoT7poR4z2W4gWhEqNX"
+        clientSecret:
+          type: "string"
+          default: ""
+          description: "The Auth0 client secret.The secret must not be public."
+          example: "YSAk086B326FUJHqmRYjnipD9eirMrZ8mWdb6LT4V20CGBX744GcVbYY3PqHhQC_"
+  securitySchemes:
+    PlatformXAuthorizer:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+        type: "request"
+        authorizerUri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${auth_name}/invocations"
+        authorizerCredentials: "arn:aws:iam::${account}:role/${auth_role}"
+        authorizerResultTtlInSeconds: 0
+        identitySource: "method.request.header.Authorization"
+  responses:
+    internalError:
+      description: "Internal server error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "*Internal Server Error* - The server encountered an unexpected condition that prevented it from fulfilling the request."
+    roleNotFound:
+      description: "Role not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Requested role not found."
+    permissionNotFound:
+      description: "Permission not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Requested permission not found."
+    resourceServerNotFound:
+      description: "Resource Server not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Requested resource server not found."
+    userNotFound:
+      description: User not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Requested user not found."
+    machineUserNotFound:
+      description: Machine user not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Requested machine user not found."
+    badInput:
+      description: "Bad input parameter"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "*Bad Request* - The server cannot process the request due to malformed syntax. The response can be caused by missing mandatory query parameters, invalid values in the query parameters, validation exceptions, and so on"
+    notAuthorized:
+      description: "User not authorized"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "*Unauthorized* - The server cannot apply the request because it lacks valid authentication credentials for the target resource."
+    conflict:
+      description: "Conflict: already exist"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "*Conflict* - The server cannot complete the request due to a conflict with the current state of the resource."
+    forbidden:
+      description: "User not allowed to access requested resources"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "*Forbidden* - The server refuses to apply the request because the client does not have access rights to the content."
