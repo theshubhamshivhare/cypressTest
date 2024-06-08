@@ -19,47 +19,43 @@ jobs:
         with:
           fetch-depth: 0
           
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Install MkDocs with Material Theme
+        run: |
+          if pip3 show mkdocs > /dev/null; then
+            echo "MkDocs is already installed. Version: $(mkdocs --version)"
+          else
+            pip3 install mkdocs==1.5.3
+          fi
+          if pip3 show mkdocs-material > /dev/null; then
+            echo "MkDocs Material is already installed. Version: $(pip3 show mkdocs-material | grep Version | cut -d ' ' -f 2)"
+          else
+            pip3 install mkdocs-material==9.5.18
+          fi
+          if pip3 show mike > /dev/null; then
+           pip3 install mike==2.1.1
+          else
+            pip3 install mike==2.1.1
+          fi
+
+      - name: Extract version from tag
+        id: vars
+        run: echo "version=v0.$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+
+      - name: Create Swagger UI
+        uses: Legion2/swagger-ui-action@v1
         with:
-          repository: theshubhamshivhare/Express-Boilerplate
-          path: asmp-documentation
-      
-      - name: Create a new branch in Zoomin Repository
-        id: create_branch
-        run: |
-          cd asmp-documentation
-          BRANCH_NAME="feature-${{ github.ref_name }}"  # Create a branch name using the name of the feature branch
-          git checkout -b $BRANCH_NAME
-          echo "::set-output name=branch::$BRANCH_NAME"
+          output: ./site/api-docs
+          spec-file: ./zoomin_docs/swagger.yaml
 
-      - name: Sync source to target repository
+      - name: Mike deployment
+        env:
+          VERSION: ${{env.version}}
         run: |
-          rsync -av --progress cypress/ asmp-documentation/ --exclude .git --exclude .github
+          cp -r api-docs/* site/
+          if mike list | grep -q "latest"; then
+            mike delete --push --branch gh-pages latest
+          fi
+          mike deploy --push --branch gh-pages $VERSION
+          mike alias --push --branch gh-pages $VERSION latest
 
-      - name: Commit changes and Push
-        run: |
-          cd asmp-documentation
-          git config --global user.email "shubham7047@gmail.com"
-          git config --global user.name "shubham"
-          git status
-          git add .
-          git commit -m "Sync from user-management repository"
-          git status
-
-          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)  # Get the current branch name
-          echo "Pushing changes to branch $BRANCH_NAME"
-          git status
-          git push origin HEAD  # Push changes to the newly created current branch
-          
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: Sync from user-management repository
-          branch: test  # Use the dynamically created branch name
-          base: master  # Base branch to merge into
-          title: 'Sync from user-management repository'
-          body: |
-            This pull request is automatically created by GitHub Actions to sync changes from the user-management repository.
-      
-      
+     
