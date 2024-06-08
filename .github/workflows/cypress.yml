@@ -44,7 +44,7 @@ jobs:
       - name: Create Swagger UI
         uses: Legion2/swagger-ui-action@v1
         with:
-          output: ./site/api-docs
+          output: ./zoomin_docs/api-docs
           spec-file: ./zoomin_docs/swagger.yaml
 
       - name: Mike deployment
