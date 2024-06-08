@@ -49,7 +49,7 @@ jobs:
       
       - name: Copy Swagger UI to MkDocs directory
         run: |
-          cp -r ./api-docs/* ./site
+          cp -r ./site/* ./docs
       - name: Build Documentation Site
         run: |
           mkdocs build
