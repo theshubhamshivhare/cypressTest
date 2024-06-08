@@ -44,13 +44,22 @@ jobs:
       - name: Create Swagger UI
         uses: Legion2/swagger-ui-action@v1
         with:
-          output: ./zoomin_docs/api-docs
+          output: ./site/api-docs
           spec-file: ./zoomin_docs/swagger.yaml
-
+      
+      - name: Copy Swagger UI to MkDocs directory
+        run: |
+          cp -r ./site/* ./site
+      - name: Build Documentation Site
+        run: |
+          mkdocs build
+      
       - name: Mike deployment
         env:
           VERSION: ${{env.version}}
         run: |
+          git config --global user.name = "Shubham"
+          git config --global user.email = "shubham7047@gmail.com"
           if mike list | grep -q "latest"; then
             mike delete --push --branch gh-pages latest
           fi
