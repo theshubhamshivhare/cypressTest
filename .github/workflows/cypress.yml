@@ -51,7 +51,7 @@ jobs:
         env:
           VERSION: ${{env.version}}
         run: |
-          cp -r site/* site/
+          cp -r site/* /
           if mike list | grep -q "latest"; then
             mike delete --push --branch gh-pages latest
           fi
